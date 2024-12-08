@@ -130,6 +130,51 @@ void reset_snack_menu()
     fclose(file);
 }
 
+// 메뉴 상태(재고)를 파일에 저장하는 함수
+void save_menu_status() {
+    FILE *drink_file = fopen("inputs/drink2.txt", "w");
+    FILE *snack_file = fopen("inputs/snack2.txt", "w");
+
+    if (!drink_file || !snack_file) {
+        printf("Error: Unable to save menu status!\n");
+        return;
+    }
+
+    // 음료 메뉴 상태 저장
+    for (int i = 0; i < menu.drink_count; i++) {
+        fprintf(drink_file, "%s\t%d\t%d\n", 
+            menu.drinks[i].name, 
+            menu.drinks[i].price, 
+            menu.drinks[i].stock);
+    }
+
+    // 스낵 메뉴 상태 저장
+    for (int i = 0; i < menu.snack_count; i++) {
+        fprintf(snack_file, "%s\t%d\t%d\n", 
+            menu.snacks[i].name, 
+            menu.snacks[i].price, 
+            menu.snacks[i].stock);
+    }
+
+    fclose(drink_file);
+    fclose(snack_file);
+}
+
+// 매출 정보를 저장하는 함수 추가
+void update_assets(int order_total_price) {
+    FILE *sales_file = fopen("inputs/assets.txt", "r+");
+    int current_total_sales = 0;
+
+    // 기존 총 매출액 읽기
+    fscanf(sales_file, "%d", &current_total_sales);
+    rewind(sales_file);
+
+    // 새로운 총 매출액 계산 및 저장
+    current_total_sales += order_total_price;
+    fprintf(sales_file, "%d", current_total_sales);
+    fclose(sales_file);
+}
+
 void print_receipt()
 {
     // Save to file
@@ -487,6 +532,18 @@ void service_mode()
     
     // 영수증 발행
     print_receipt();
+
+    // 재고 상태 저장
+    save_menu_status();
+
+    int total_order_price = 0;
+    for (int i = 0; i < order_count; i++)
+    {
+        total_order_price += orders[i]->price;
+    }
+
+    // 매출 정보 업데이트
+    update_assets(total_order_price); 
 
     // Free orders
     free(orders);
