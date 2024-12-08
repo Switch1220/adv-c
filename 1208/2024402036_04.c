@@ -78,6 +78,8 @@ void reset_drink_menu()
         // 개행 제거
         buffer[strcspn(buffer, "\n")] = 0;
 
+        menu.drinks[menu.drink_count].id = menu.drink_count + 1;
+
         // strok 함수를 사용하여 메뉴 이름과 가격, 재고를 분리
         char* token = strtok(buffer, "\t");
         menu.drinks[menu.drink_count].name = strdup(token);
@@ -94,7 +96,6 @@ void reset_drink_menu()
     fclose(file);
 }
 
-// 스낵 메뉴 리셋 함수
 void reset_snack_menu()
 {
     FILE *file = fopen("inputs/snack2.txt", "r");
@@ -113,6 +114,8 @@ void reset_snack_menu()
 
         // 개행 제거
         buffer[strcspn(buffer, "\n")] = 0;
+
+        menu.snacks[menu.snack_count].id = menu.snack_count + 1;
 
         // strok 함수를 사용하여 메뉴 이름과 가격, 재고를 분리
         char* token = strtok(buffer, "\t");
@@ -161,8 +164,8 @@ void save_menu_status() {
 }
 
 // 매출 정보를 저장하는 함수 추가
-void update_assets(int order_total_price) {
-    FILE *sales_file = fopen("inputs/assets.txt", "r+");
+void update_asset(int order_total_price) {
+    FILE *sales_file = fopen("inputs/asset.txt", "r+");
     int current_total_sales = 0;
 
     // 기존 총 매출액 읽기
@@ -211,12 +214,16 @@ void load_vendors() {
         }
 
         vendors[i].name = strdup(vendor_files[i]);
-        vendors[i].items = (MenuItem*)malloc(menu.drink_count + menu.snack_count * sizeof(MenuItem));
+        vendors[i].items = (MenuItem*)malloc((menu.drink_count + menu.snack_count) * sizeof(MenuItem));
         vendors[i].item_count = 0;
 
         char buffer[BUFFER_LENGTH];
         while (fgets(buffer, sizeof(buffer), file)) {
             buffer[strcspn(buffer, "\n")] = 0;
+
+            if (vendors[i].item_count >= menu.drink_count + menu.snack_count) {
+                vendors[i].items = (MenuItem*)realloc(vendors[i].items, (vendors[i].item_count + 1) * sizeof(MenuItem));
+            }
 
             char* token = strtok(buffer, "\t");
             vendors[i].items[vendors[i].item_count].name = strdup(token);
@@ -304,6 +311,28 @@ Vendor* select_cheapest_vendor() {
     return selected_vendor;
 }
 
+void order_print(Vendor* vendor, int order_items, int order_total_cost) {
+    printf("===== Order Results =====\n");
+    printf("Vendor: %s\n", vendor->name);
+    printf("Total Items Ordered: %d\n", order_items);
+    printf("Total Order Cost: %d\n", order_total_cost);
+    printf("Remaining Asset: %d\n", total_asset);
+
+    // 주문한 상품 목록 출력
+    printf("\nOrdered Items:\n");
+
+    for (int i = 0; i < menu.drink_count; i++) {
+        if (menu.drinks[i].stock == 5) {
+            printf("%s (drink): 5 added\n", menu.drinks[i].name);
+        }
+    }
+    for (int i = 0; i < menu.snack_count; i++) {
+        if (menu.snacks[i].stock == 5) {
+            printf("%s (snack): 5 added\n", menu.snacks[i].name);
+        }
+    }
+}
+
 // 재고 주문 함수
 void order_stock() {
     // 재고 부족 아이템 개수 확인
@@ -366,51 +395,32 @@ void order_stock() {
     }
 }
 
-void order_print(Vendor* vendor, int order_items, int order_total_cost) {
-    FILE* receipt = fopen("order_receipt.txt", "w");
-    if (!receipt) {
-        printf("Could not create order receipt file.\n");
-        return;
-    }
-
-    // 화면 및 파일 출력
-    printf("===== Inventory Order Results =====\n");
-    printf("Vendor: %s\n", vendor->name);
-    printf("Total Items Ordered: %d\n", order_items);
-    printf("Total Order Cost: %d\n", order_total_cost);
-    printf("Remaining Asset: %d\n", total_asset);
-
-    fprintf(receipt, "===== Inventory Order Results =====\n");
-    fprintf(receipt, "Vendor: %s\n", vendor->name);
-    fprintf(receipt, "Total Items Ordered: %d\n", order_items);
-    fprintf(receipt, "Total Order Cost: %d\n", order_total_cost);
-    fprintf(receipt, "Remaining Asset: %d\n", total_asset);
-
-    // 주문한 상품 목록 출력
-    printf("\nOrdered Items:\n");
-    fprintf(receipt, "\nOrdered Items:\n");
+// 부족한 재고 출력 함수
+void print_out_of_stock_items() {
+    printf("======= Sold out Menu =======\n");
     for (int i = 0; i < menu.drink_count; i++) {
-        if (menu.drinks[i].stock == 5) {
-            printf("%s (drink): 5 added\n", menu.drinks[i].name);
-            fprintf(receipt, "%s (drink): 5 added\n", menu.drinks[i].name);
+        if (menu.drinks[i].stock == 0) {
+            printf("%d : %s\n", menu.drinks[i].id, menu.drinks[i].name);
         }
     }
     for (int i = 0; i < menu.snack_count; i++) {
-        if (menu.snacks[i].stock == 5) {
-            printf("%s (snack): 5 added\n", menu.snacks[i].name);
-            fprintf(receipt, "%s (snack): 5 added\n", menu.snacks[i].name);
+        if (menu.snacks[i].stock == 0) {
+            printf("%d : %s\n", menu.snacks[i].id, menu.snacks[i].name);
         }
     }
-
-    fclose(receipt);
 }
 
 void admin_mode() {
     // 외부회사 정보 로드
     load_vendors();
 
+    // 부족한 재고 출력
+    print_out_of_stock_items();
+
     // 재고 주문 수행
     order_stock();
+
+    save_menu_status();
 
     // 외부회사 정보 메모리 해제
     for (int i = 0; i < vendor_count; i++) {
@@ -543,7 +553,7 @@ void service_mode()
     }
 
     // 매출 정보 업데이트
-    update_assets(total_order_price); 
+    update_asset(total_order_price); 
 
     // Free orders
     free(orders);
