@@ -1,0 +1,10 @@
+Americano	2500	50
+Cafe Latte	3500	50
+Cappuccino	4000	50
+Green Tea	2000	50
+Black Tea	2000	50
+Lemonade	3500	50
+Cheesecake	5000	30
+Chocolate Cake	5000	30
+Croffle	3500	30
+Muffin	2500	30

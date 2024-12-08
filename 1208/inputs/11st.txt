@@ -1,0 +1,10 @@
+Americano	2700	100
+Cafe Latte	3600	100
+Cappuccino	4200	100
+Orange Juice	3000	100
+Cola	1800	100
+Sprite	1800	100
+Cookie	2000	50
+Sandwich	4000	50
+Bagel	3000	50
+Pretzel	2500	50

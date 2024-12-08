@@ -1,0 +1,9 @@
+Americano
+Cafe Latte
+Cappuccino
+Green Tea
+Black Tea
+Lemonade
+Orange Juice
+Cola
+Sprite

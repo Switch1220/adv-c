@@ -1,0 +1,9 @@
+Americano	3000	15
+Cafe Latte	4000	12
+Cappuccino	4500	10
+Green Tea	2500	8
+Black Tea	2500	5
+Lemonade	4000	7
+Orange Juice	3500	9
+Cola	2000	20
+Sprite	 2000	18

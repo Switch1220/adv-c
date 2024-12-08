@@ -1,0 +1,9 @@
+Cheesecake	5500	6
+Chocolate Cake	5500	8
+Croffle	4000	10
+Muffin	3000	15
+Cookie	2500	20
+Sandwich	4500	7
+Bagel	3500	12
+Pretzel	3000	9
+Brownie	4000	5

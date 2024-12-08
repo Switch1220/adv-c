@@ -1,0 +1,10 @@
+Americano	2600	80
+Cafe Latte	3800	80
+Green Tea	2200	80
+Black Tea	2200	80
+Orange Juice	3200	80
+Cola	1900	80
+Cheesecake	5200	40
+Chocolate Cake	5200	40
+Bagel	3200	40
+Brownie	3500	40
